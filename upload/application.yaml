@@ -1,0 +1,183 @@
+server:
+  port : 8080
+  servlet:
+    context-path: /
+  max-http-header-size: 16000
+  forward-headers-strategy: native
+  tomcat:
+    remote-ip-header: x-forwarded-for
+    protocol-header: x-forwarded-proto
+    max-threads: 100
+payment:
+  application:
+    name: PFS
+  api:
+    url: ${PAYMENT_API_URL}
+    username: ${PAYMENT_API_USERNAME}
+    password: ${PAYMENT_API_PASSWORD}
+account:
+    validation: true
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  mvc:
+    servlet:
+      path: /pfs
+  primary:
+    datasource:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://${PRIMARY_DATABASE_URL}
+      port: ${DATABASE_PORT}
+      username: ${DATABASE_USERNAME}
+      password: ${DATABASE_PASSWORD}
+  replica:
+    datasource:
+      driver-class-name: com.mysql.cj.jdbc.Driver
+      jdbc-url: jdbc:mysql://${SECONDARY_DATABASE_URL}
+      port: ${DATABASE_PORT}
+      username: ${DATABASE_USERNAME}
+      password: ${DATABASE_PASSWORD}
+  redis:
+    redisson:
+      config: file:/opt/apt/pfs/redisson.yaml
+  datasource:
+    hikari:
+      connectionTimeout: 60000
+      idleTimeout: 600000
+      maxLifetime: 1680000
+      minimumIdle: ${MINIMUM_IDLE}
+      maximumPoolSize: ${MAX_POOL_SIZE}
+      cachePrepStmts: true
+      prepStmtCacheSize: 250
+      prepStmtCacheSqlLimit: 2048
+      useServerPrepStmts: true
+      useLocalSessionState: true
+      rewriteBatchedStatements: true
+      cacheResultSetMetadata: true
+      cacheServerConfiguration: true
+  hibernate:
+    dialect: org.hibernate.dialect.MySQL5Dialect
+    generate_statistics: false
+  jpa:
+    open-in-view: false
+    properties:
+      hibernate:
+        generate_statistics: false
+        enable_lazy_load_no_trans: true
+        hbm2ddl:
+          auto: none
+        show_sql: false
+        format_sql: false
+        cache:
+          use_second_level_cache: true
+          use_query_cache: true
+          region:
+            factory_class: org.redisson.hibernate.RedissonRegionFactory
+          redisson:
+            database: 3
+            config: ./redisson.yaml
+            query:
+              eviction:
+                max_entries: 1000
+              expiration:
+                time_to_live: 240000
+                max_idle_time: 180000
+            entity:
+              eviction:
+                max_entries: 1000
+              expiration:
+                time_to_live: 240000
+                max_idle_time: 180000
+            collection:
+              eviction:
+                max_entries: 1000
+              expiration:
+                time_to_live: 240000
+                max_idle_time: 180000
+      javax:
+        persistence:
+          sharedCache:
+            mode: DISABLE_SELECTIVE
+hibernate:
+  jdbc:
+    batch_size: 20
+logging:
+  file: /var/log/${WEBAPP_TYPE}/${WEBAPP_TYPE}.log
+  config: /opt/apt/${WEBAPP_TYPE}/logback.xml
+apt:
+  tracing:
+    enabled: true
+  web:
+    recognizedHosts: '*.${HZ_DOMAIN_NAME}'
+    name: WEB-APPLICATION
+  pfs:
+    cors:
+       origin:
+            url1: 'https://webcrypto.apt${ENVIRONMENT}.ca'
+            url2: 'https://${CITIBANK_DOMAIN_NAME}'
+            headers: '*'
+  environment:
+    name: ${ENVIRONMENT}
+aws:
+  ses:
+    region: ca-central-1
+  s3:
+    bucketname: ${ENVIRONMENT}-apt-01-batch-output-ca-central-1
+  multibill:
+    region: ca-central-1
+  mail:
+    from: ${SENDER_NAME}
+    replyTo: PFS.Creditors@telus.com
+
+cryptoServiceUrl:
+  bmoBc: https://webcrypto.${HZ_DOMAIN_NAME}/cryptobc/CryptoBC.aspx
+  bmoTd: https://webcrypto.${HZ_DOMAIN_NAME}/cryptotd/CryptoTD.aspx
+  rbc: https://webcrypto.${HZ_DOMAIN_NAME}/rbccrypto/RBCcrypto.aspx
+  blc: https://webcrypto.${HZ_DOMAIN_NAME}/okiokcrypto/OKIOKcrypto.aspx
+  cibc: https://webcrypto.${HZ_DOMAIN_NAME}/cibccrypto/CIBCcrypto.aspx
+  mcu: https://webcrypto.${HZ_DOMAIN_NAME}/opensslcrypto/OpenSSLcrypto.aspx
+  citi: https://webcrypto.${HZ_DOMAIN_NAME}/citicrypto/Citicrypto.aspx
+  bns: https://bns-crypto.${HZ_DOMAIN_NAME}/apt-cryptoservice/BnsCryptoService
+
+fi-mapping-hostnames: '{''cibc.${HZ_DOMAIN_NAME}'':''10'',''cibc.${HZ_CANACT_DOMAIN_NAME}'':''10'',''hsbc.${HZ_DOMAIN_NAME}'':''16'',''hsbc.${HZ_CANACT_DOMAIN_NAME}'':''16'',''banquelaurentienne.${HZ_DOMAIN_NAME}'':''39'',''banquelaurentienne.${HZ_CANACT_DOMAIN_NAME}'':''39'',''atb.${HZ_DOMAIN_NAME}'':''19'',''atb.${HZ_CANACT_DOMAIN_NAME}'':''19'',''bofa.${HZ_DOMAIN_NAME}'':''24'',''bofa.${HZ_CANACT_DOMAIN_NAME}'':''24'',''bnc.${HZ_DOMAIN_NAME}'':''6'',''bnc.${HZ_CANACT_DOMAIN_NAME}'':''6'',''dj.${HZ_DOMAIN_NAME}'':''39'',''dj.${HZ_CANACT_DOMAIN_NAME}'':''39'',''fdj.${HZ_DOMAIN_NAME}'':''15'',''fdj.${HZ_CANACT_DOMAIN_NAME}'':''15'',''kebhana.${HZ_DOMAIN_NAME}'':''71'',''kebhana.${HZ_CANACT_DOMAIN_NAME}'':''71'',''jpmorgan.${HZ_DOMAIN_NAME}'':''70'',''jpmorgan.${HZ_CANACT_DOMAIN_NAME}'':''70'',''meridiancu.${HZ_DOMAIN_NAME}'':''23'',''meridiancu.${HZ_CANACT_DOMAIN_NAME}'':''23'',''tdbanktax.${HZ_DOMAIN_NAME}'':''4'',''tdbanktax.${HZ_CANACT_DOMAIN_NAME}'':''4'',''bmotax.${HZ_DOMAIN_NAME}'':''1'',''bmotax.${HZ_CANACT_DOMAIN_NAME}'':''1'',''scotiabank.${HZ_DOMAIN_NAME}'':''2'',''scotiabank.${HZ_CANACT_DOMAIN_NAME}'':''2'',''royalbank.${HZ_DOMAIN_NAME}'':''3'',''royalbank.${HZ_CANACT_DOMAIN_NAME}'':''3'',''citibank.${HZ_DOMAIN_NAME}'':''60'',''citibank.${HZ_CANACT_DOMAIN_NAME}'':''60'',''testbmotax.${HZ_DOMAIN_NAME}'':''1000'',''testbmotax.${HZ_CANACT_DOMAIN_NAME}'':''1000'',''manulifebank.${HZ_DOMAIN_NAME}'':''54'',''manulifebank.${HZ_CANACT_DOMAIN_NAME}'':''54'', ''pncbanktax.${HZ_DOMAIN_NAME}'':''35'',''pncbanktax.${HZ_CANACT_DOMAIN_NAME}'':''35''}'
+fi-hostnames-mapping: '{''10'':{''cibc.${HZ_DOMAIN_NAME}'', ''cibc.${HZ_CANACT_DOMAIN_NAME}''},''16'':{''hsbc.${HZ_DOMAIN_NAME}'',''hsbc.${HZ_CANACT_DOMAIN_NAME}''},''39'':{''banquelaurentienne.${HZ_DOMAIN_NAME}'', ''banquelaurentienne.${HZ_CANACT_DOMAIN_NAME}''},''19'':{''atb.${HZ_DOMAIN_NAME}'', ''atb.${HZ_CANACT_DOMAIN_NAME}''},''24'':{''bofa.${HZ_DOMAIN_NAME}'', ''bofa.${HZ_CANACT_DOMAIN_NAME}''},''6'':{''bnc.${HZ_DOMAIN_NAME}'',''bnc.${HZ_CANACT_DOMAIN_NAME}''},''15'':{''fdj.${HZ_DOMAIN_NAME}'',''fdj.${HZ_CANACT_DOMAIN_NAME}'',''dj.${HZ_DOMAIN_NAME}'',''dj.${HZ_CANACT_DOMAIN_NAME}''},''81'':{''fdj.${HZ_DOMAIN_NAME}'',''fdj.${HZ_CANACT_DOMAIN_NAME}''},''82'':{''fdj.${HZ_DOMAIN_NAME}'',''fdj.${HZ_CANACT_DOMAIN_NAME}''},''86'':{''fdj.${HZ_DOMAIN_NAME}'',''fdj.${HZ_CANACT_DOMAIN_NAME}''},''89'':{''fdj.${HZ_DOMAIN_NAME}'',''fdj.${HZ_CANACT_DOMAIN_NAME}''},''71'':{''kebhana.${HZ_DOMAIN_NAME}'',''kebhana.${HZ_CANACT_DOMAIN_NAME}''},''70'':{''jpmorgan.${HZ_DOMAIN_NAME}'',''jpmorgan.${HZ_CANACT_DOMAIN_NAME}''},''23'':{''meridiancu.${HZ_DOMAIN_NAME}'',''meridiancu.${HZ_CANACT_DOMAIN_NAME}''},''4'':{''tdbanktax.${HZ_DOMAIN_NAME}'',''tdbanktax.${HZ_CANACT_DOMAIN_NAME}'',''tdbanktaxenrol.${HZ_DOMAIN_NAME}'', ''tdbanktaxenrol.${HZ_CANACT_DOMAIN_NAME}''},''1'':{''bmotaxenrol.${HZ_DOMAIN_NAME}'',''bmotaxenrol.${HZ_CANACT_DOMAIN_NAME}'',''bmotax.${HZ_DOMAIN_NAME}'',''bmotax.${HZ_CANACT_DOMAIN_NAME}''},''2'':{''scotiabank.${HZ_DOMAIN_NAME}'',''scotiabank.${HZ_CANACT_DOMAIN_NAME}''},''3'':{''royalbank.${HZ_DOMAIN_NAME}'', ''royalbank.${HZ_CANACT_DOMAIN_NAME}''},''60'':{''citibank.${HZ_DOMAIN_NAME}'', ''citibank.${HZ_CANACT_DOMAIN_NAME}''},''1000'':{''testbmotax.${HZ_DOMAIN_NAME}'', ''testbmotax.${HZ_CANACT_DOMAIN_NAME}''},''54'':{''manulifebank.${HZ_DOMAIN_NAME}'',''manulifebank.${HZ_CANACT_DOMAIN_NAME}''}, ''35'':{''pncbanktax.${HZ_DOMAIN_NAME}'', ''pncbanktax.${HZ_CANACT_DOMAIN_NAME}''}}'
+
+#CitiBank w2wLogin Ist legged flow(C947-380)
+citibank:
+  response:
+    template: "<CATUP_RESPONSE><STATUS>%s</STATUS><STATUSID>%s</STATUSID><USER_ID>%s</USER_ID><TIMESTAMP>%s GMT+00:00</TIMESTAMP><CATUP_SESSIONID>%s</CATUP_SESSIONID><URL>%s/pfs/w2wCitiLogin?CANACT_AccessToken=%s</URL></CATUP_RESPONSE>"
+  content-type:
+    text-xml:
+      allow: true
+
+#WS properties for  SOAP VALIDATIONS for Billing Account
+# environment Dev.
+#host
+validationBillerServiceUrl: https://${BILLER_DOMAIN_NAME}/BillerValidation.asmx?wsdl
+#FI=61;ING
+userid61: ${SOAP_USERID61}
+password61: ${SOAP_PASSWORD61}
+#FI=1;BMO
+userid1: ${SOAP_USERID1}
+password1: ${SOAP_PASSWORD1}
+#FI=24;BOA
+userid24: ${SOAP_USERID24}
+password24: ${SOAP_PASSWORD24}
+#FI=22;BOA
+userid22: ${SOAP_USERID24}
+password22: ${SOAP_PASSWORD24}
+#FI=60;CITY Bank
+userid60: ${SOAP_USERID60}
+password60: ${SOAP_PASSWORD60}
+#FI=98;FNF
+userid98: ${SOAP_USERID98}
+password98: ${SOAP_PASSWORD98}
+#FI=70;JPMC
+userid70: ${SOAP_USERID70}
+password70: ${SOAP_PASSWORD70}
+#only accept these FI
+fi_list: 1,24,60,61,70,98,22
+#DB connection parameters
+ssl: useSSL=true
+tls:
+  protocol: enabledTLSProtocols=TLSv1.2
